@@ -123,14 +123,56 @@ def build() -> None:
 @click.argument("question")
 @click.option("--top-k", default=None, type=int)
 def query(question: str, top_k: int | None) -> None:
-    """Run a natural-language query against the indexed filings."""
+    """Run a natural-language query against the indexed filings.
+
+    Loads embeddings from DuckDB into an in-memory Qdrant instance so the
+    CLI works even when the Streamlit app holds the embedded store lock.
+    """
+    import json
     from src.embed.embedder import get_embedder
+    from src.models import Chunk
     from src.rag.pipeline import RAGPipeline
     from src.store.qdrant_store import QdrantStore
     from src.store.warehouse import Warehouse
+    from qdrant_client import QdrantClient
 
     embedder = get_embedder()
-    store = QdrantStore()
+
+    # Build an in-memory store from the embeddings persisted in DuckDB.
+    # This avoids the file-lock conflict with the Streamlit app.
+    import duckdb
+    conn = duckdb.connect(str(settings.duckdb_path), read_only=True)
+    rows = conn.execute(
+        "SELECT chunk_id, filing_id, cik, company_name, form_type, filed_date, "
+        "chunk_index, text, char_count, embedding_json, chunked_at "
+        "FROM raw_chunks WHERE embedding_json IS NOT NULL"
+    ).fetchall()
+    conn.close()
+
+    if not rows:
+        click.echo("No embeddings found in warehouse — run `build` first.")
+        return
+
+    client = QdrantClient(":memory:")
+    # Temporarily patch embed_dim so the collection is created with the right size
+    first_vec = json.loads(rows[0][9])
+    settings.__dict__["embed_dim"] = len(first_vec)
+    store = QdrantStore(client=client)
+
+    chunks = []
+    for row in rows:
+        chunk_id, filing_id, cik, company, form, filed, idx, text, chars, emb_json, chunked = row
+        chunk = Chunk(
+            chunk_id=chunk_id, filing_id=filing_id, cik=cik,
+            company_name=company, form_type=form, filed_date=filed,
+            chunk_index=idx, text=text, char_count=chars or len(text),
+            embedding=json.loads(emb_json),
+        )
+        chunks.append(chunk)
+
+    store.upsert_chunks(chunks)
+    click.echo(f"Loaded {len(chunks)} chunks into search index.")
+
     with Warehouse() as wh:
         pipeline = RAGPipeline(embedder, store, wh)
         result = pipeline.query(question, top_k=top_k)
