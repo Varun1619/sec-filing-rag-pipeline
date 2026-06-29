@@ -1,0 +1,51 @@
+# Data & model artifacts (can be large / sensitive)
+data/
+qdrant_data/
+*.duckdb
+*.duckdb.wal
+logs/
+.dbt/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+.mypy_cache/
+.ruff_cache/
+
+# Environment / secrets
+.env
+.env.local
+
+# Sentence-transformers / HF model cache
+models/
+.cache/
+sentence_transformers_cache/
+
+# dbt artifacts
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# Dagster
+$dagster_home/
+dagster_home/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Evaluation outputs (regeneratable)
+eval_results/

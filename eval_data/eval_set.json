@@ -1,0 +1,122 @@
+[
+  {
+    "question": "What information does Apple Inc. provide in its 10-Q filing about: ctive Date , which clarified the effective date of ASU 2024-03. ASU 2024-03 will?",
+    "expected_filing_id": "a244abbf-4222-4641-9c71-7fbd598843b6",
+    "expected_cik": "0000320193",
+    "expected_text_contains": "ctive Date , which clarified the effecti"
+  },
+  {
+    "question": "What information does Apple Inc. provide in its 10-Q filing about: Financial Statements in Part II, Item 8 of the 2025 Form 10-K describe the signi?",
+    "expected_filing_id": "a244abbf-4222-4641-9c71-7fbd598843b6",
+    "expected_cik": "0000320193",
+    "expected_text_contains": "Financial Statements in Part II, Item 8 "
+  },
+  {
+    "question": "What information does Alphabet Inc. provide in its 10-Q filing about: assets and property and equipment, among others. We base our estimates on assump?",
+    "expected_filing_id": "d285ee12-22d5-4a75-9280-9eeadf890bcd",
+    "expected_cik": "0001652044",
+    "expected_text_contains": "assets and property and equipment, among"
+  },
+  {
+    "question": "What information does Alphabet Inc. provide in its 10-Q filing about: Risk Factors.\" Understanding Alphabet\u2019s Financial Results Alphabet is a collecti?",
+    "expected_filing_id": "51a9d869-a910-4508-aee5-8c9202a72ccc",
+    "expected_cik": "0001652044",
+    "expected_text_contains": "Risk Factors.\" Understanding Alphabet\u2019s "
+  },
+  {
+    "question": "What information does Alphabet Inc. provide in its 10-K filing about: r the remaining life of the asset. In determining the amount of the allowance fo?",
+    "expected_filing_id": "08431816-09ce-4165-8d74-fe017f2f5700",
+    "expected_cik": "0001652044",
+    "expected_text_contains": "r the remaining life of the asset. In de"
+  },
+  {
+    "question": "What information does Apple Inc. provide in its 10-Q filing about: he strength in foreign currencies relative to the U.S. dollar had a net favorabl?",
+    "expected_filing_id": "a244abbf-4222-4641-9c71-7fbd598843b6",
+    "expected_cik": "0000320193",
+    "expected_text_contains": "he strength in foreign currencies relati"
+  },
+  {
+    "question": "What information does AMAZON COM INC provide in its 10-K filing about: carefully consider the following discussion of significant factors, events, and ?",
+    "expected_filing_id": "867f9c71-048c-44ba-b6f1-ba6419927c1e",
+    "expected_cik": "0001018724",
+    "expected_text_contains": "carefully consider the following discuss"
+  },
+  {
+    "question": "What information does Alphabet Inc. provide in its 10-K filing about: isclosures About Market Risk of this Annual Report on Form 10-K. Provision for I?",
+    "expected_filing_id": "08431816-09ce-4165-8d74-fe017f2f5700",
+    "expected_cik": "0001652044",
+    "expected_text_contains": "isclosures About Market Risk of this Ann"
+  },
+  {
+    "question": "What information does Alphabet Inc. provide in its 10-K filing about: ncome than predicted if interest rates fall. Unrealized gains and losses on our ?",
+    "expected_filing_id": "08431816-09ce-4165-8d74-fe017f2f5700",
+    "expected_cik": "0001652044",
+    "expected_text_contains": "ncome than predicted if interest rates f"
+  },
+  {
+    "question": "What information does Apple Inc. provide in its 10-Q filing about: ntial systemic risks, such as cascading failures across interconnected systems, ?",
+    "expected_filing_id": "fc5e46ab-80a0-4cf6-af91-2346b024a773",
+    "expected_cik": "0000320193",
+    "expected_text_contains": "ntial systemic risks, such as cascading "
+  },
+  {
+    "question": "What information does Alphabet Inc. provide in its 10-K filing about: of our agreements with our customers and partners, including certain suppliers, ?",
+    "expected_filing_id": "08431816-09ce-4165-8d74-fe017f2f5700",
+    "expected_cik": "0001652044",
+    "expected_text_contains": "of our agreements with our customers and"
+  },
+  {
+    "question": "What information does Alphabet Inc. provide in its 10-Q filing about: dgingMember us-gaap:SalesMember 2024-07-01 2024-09-30 0001652044 us-gaap:Foreign?",
+    "expected_filing_id": "51a9d869-a910-4508-aee5-8c9202a72ccc",
+    "expected_cik": "0001652044",
+    "expected_text_contains": "dgingMember us-gaap:SalesMember 2024-07-"
+  },
+  {
+    "question": "What information does AMAZON COM INC provide in its 10-K filing about: ts in multiple jurisdictions, including with respect to the allocation and chara?",
+    "expected_filing_id": "867f9c71-048c-44ba-b6f1-ba6419927c1e",
+    "expected_cik": "0001018724",
+    "expected_text_contains": "ts in multiple jurisdictions, including "
+  },
+  {
+    "question": "What information does AMAZON COM INC provide in its 10-Q filing about: net income is as follows (in millions): Three Months Ended September 30, Nine Mo?",
+    "expected_filing_id": "19cbcd9c-be62-47f8-9ab6-03a25132fa24",
+    "expected_cik": "0001018724",
+    "expected_text_contains": "net income is as follows (in millions): "
+  },
+  {
+    "question": "What information does Apple Inc. provide in its 10-K filing about: re, many components used by the Company, including those that are available from?",
+    "expected_filing_id": "2792c3a1-e066-48d4-9be0-bcf3663e14b6",
+    "expected_cik": "0000320193",
+    "expected_text_contains": "re, many components used by the Company,"
+  },
+  {
+    "question": "What information does Alphabet Inc. provide in its 10-K filing about: gramMember goog:CapitalClassAAndCMember 2025-04-30 0001652044 goog:ShareRepurcha?",
+    "expected_filing_id": "08431816-09ce-4165-8d74-fe017f2f5700",
+    "expected_cik": "0001652044",
+    "expected_text_contains": "gramMember goog:CapitalClassAAndCMember "
+  },
+  {
+    "question": "What information does Apple Inc. provide in its 10-Q filing about: InCapitalMember 2024-09-28 0000320193 us-gaap:CommonStockIncludingAdditionalPaid?",
+    "expected_filing_id": "fc5e46ab-80a0-4cf6-af91-2346b024a773",
+    "expected_cik": "0000320193",
+    "expected_text_contains": "InCapitalMember 2024-09-28 0000320193 us"
+  },
+  {
+    "question": "What information does AMAZON COM INC provide in its 10-Q filing about: related ongoing servicing of merchandise and content. We do not have long-term a?",
+    "expected_filing_id": "19cbcd9c-be62-47f8-9ab6-03a25132fa24",
+    "expected_cik": "0001018724",
+    "expected_text_contains": "related ongoing servicing of merchandise"
+  },
+  {
+    "question": "What information does AMAZON COM INC provide in its 10-K filing about: electronic information systems that could adversely affect the confidentiality, ?",
+    "expected_filing_id": "867f9c71-048c-44ba-b6f1-ba6419927c1e",
+    "expected_cik": "0001018724",
+    "expected_text_contains": "electronic information systems that coul"
+  },
+  {
+    "question": "What information does Alphabet Inc. provide in its 10-Q filing about: ts and are allocated to our segments. For additional information on the purchase?",
+    "expected_filing_id": "d285ee12-22d5-4a75-9280-9eeadf890bcd",
+    "expected_cik": "0001652044",
+    "expected_text_contains": "ts and are allocated to our segments. Fo"
+  }
+]

@@ -1,0 +1,7 @@
+sec_rag:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('SEC_DUCKDB_PATH', '../warehouse.duckdb') }}"
+      threads: 4

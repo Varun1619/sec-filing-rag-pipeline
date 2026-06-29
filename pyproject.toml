@@ -1,0 +1,87 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sec-filing-rag-pipeline"
+version = "0.1.0"
+description = "LLM-powered RAG search engine over SEC filings — a production-grade data engineering pipeline"
+requires-python = ">=3.11"
+dependencies = [
+    # Core data / validation
+    "pydantic>=2.7,<3",
+    "pydantic-settings>=2.3,<3",
+    # HTTP / ingestion
+    "requests>=2.31",
+    "tenacity>=8.3",
+    # Parsing
+    "beautifulsoup4>=4.12",
+    "lxml>=5.2",
+    "pypdf>=4.2",
+    # Embeddings (default offline backend)
+    "scikit-learn>=1.5",
+    "numpy>=1.26",
+    # Vector store
+    "qdrant-client>=1.9",
+    # Warehouse
+    "duckdb>=0.10",
+    # dbt
+    "dbt-core>=1.8",
+    "dbt-duckdb>=1.8",
+    # Orchestration
+    "dagster>=1.7",
+    "dagster-dbt>=0.23",
+    "dagster-webserver>=1.7",
+    # Logging / utilities
+    "python-dotenv>=1.0",
+    "rich>=13.7",
+    "click>=8.1",
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+st = [
+    "streamlit>=1.35",
+    "plotly>=5.22",
+    "pandas>=2.2",
+]
+openai = [
+    "openai>=1.30",
+]
+anthropic = [
+    "anthropic>=0.28",
+]
+groq = [
+    "groq>=0.9",
+]
+spacy = [
+    "spacy>=3.7",
+]
+sentence-transformers = [
+    "sentence-transformers>=3.0",
+]
+eval = [
+    "ragas>=0.1.9",
+    "matplotlib>=3.9",
+    "pandas>=2.2",
+]
+dev = [
+    "pytest>=8.2",
+    "pytest-cov>=5.0",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+sec-ingest = "scripts.run_pipeline:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "dagster_defs*", "scripts*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
