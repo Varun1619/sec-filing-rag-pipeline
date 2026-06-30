@@ -39,9 +39,7 @@ def _build_context(chunks: list[RetrievedChunk]) -> str:
     parts: list[str] = []
     for i, rc in enumerate(chunks, 1):
         c = rc.chunk
-        parts.append(
-            f"[{i}] {c.company_name} ({c.form_type}, {c.filed_date}):\n{c.text}"
-        )
+        parts.append(f"[{i}] {c.company_name} ({c.form_type}, {c.filed_date}):\n{c.text}")
     return "\n\n---\n\n".join(parts)
 
 

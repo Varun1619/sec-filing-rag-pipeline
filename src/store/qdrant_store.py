@@ -61,8 +61,10 @@ class QdrantStore:
                 collection_name=self._collection,
                 vectors_config=VectorParams(size=self._dim, distance=Distance.COSINE),
             )
-            logger.info("Created Qdrant collection",
-                        extra={"collection": self._collection, "dim": self._dim})
+            logger.info(
+                "Created Qdrant collection",
+                extra={"collection": self._collection, "dim": self._dim},
+            )
 
     def upsert_chunks(self, chunks: list[Chunk]) -> int:
         """
@@ -73,8 +75,10 @@ class QdrantStore:
         points: list[PointStruct] = []
         for chunk in chunks:
             if chunk.embedding is None:
-                logger.warning("Chunk missing embedding; skipping",
-                               extra={"chunk_id": chunk.chunk_id})
+                logger.warning(
+                    "Chunk missing embedding; skipping",
+                    extra={"chunk_id": chunk.chunk_id},
+                )
                 continue
             payload: dict[str, Any] = {
                 "chunk_id": chunk.chunk_id,
@@ -87,18 +91,22 @@ class QdrantStore:
                 "text": chunk.text,
                 "char_count": chunk.char_count,
             }
-            points.append(PointStruct(
-                id=_uuid_to_uint64(chunk.chunk_id),
-                vector=chunk.embedding,
-                payload=payload,
-            ))
+            points.append(
+                PointStruct(
+                    id=_uuid_to_uint64(chunk.chunk_id),
+                    vector=chunk.embedding,
+                    payload=payload,
+                )
+            )
 
         if not points:
             return 0
 
         self._client.upsert(collection_name=self._collection, points=points)
-        logger.info("Upserted chunks to Qdrant",
-                    extra={"count": len(points), "collection": self._collection})
+        logger.info(
+            "Upserted chunks to Qdrant",
+            extra={"count": len(points), "collection": self._collection},
+        )
         return len(points)
 
     def search(self, query_vector: list[float], top_k: int | None = None) -> list[RetrievedChunk]:

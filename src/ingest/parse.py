@@ -89,5 +89,8 @@ def _parse_pdf(path: Path) -> str:
             logger.warning("PDF page extraction error", extra={"page": i, "error": str(exc)})
 
     text = "\n".join(pages_text)
-    logger.debug("Parsed PDF", extra={"path": str(path), "pages": len(reader.pages), "chars": len(text)})
+    logger.debug(
+        "Parsed PDF",
+        extra={"path": str(path), "pages": len(reader.pages), "chars": len(text)},
+    )
     return text

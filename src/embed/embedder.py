@@ -15,7 +15,6 @@ openai            — text-embedding-3-small via the OpenAI API; requires OPENAI
 
 from __future__ import annotations
 
-import math
 from abc import ABC, abstractmethod
 from typing import Protocol
 

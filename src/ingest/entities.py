@@ -46,8 +46,7 @@ _MONEY_RE = re.compile(
 )
 
 _FISCAL_PERIOD_RE = re.compile(
-    r"\b(Q[1-4])\s*(?:of\s*)?(\d{4})\b"
-    r"|fiscal\s+(?:year\s+)?(\d{4})\b",
+    r"\b(Q[1-4])\s*(?:of\s*)?(\d{4})\b" r"|fiscal\s+(?:year\s+)?(\d{4})\b",
     re.IGNORECASE,
 )
 
@@ -59,14 +58,31 @@ _DATE_RE = re.compile(
 )
 
 _METRIC_KEYWORDS = {
-    "revenue", "net income", "earnings per share", "eps", "ebitda",
-    "gross profit", "operating income", "cash flow", "total assets",
-    "total liabilities", "stockholders equity", "shareholders equity",
-    "diluted eps", "basic eps", "operating margin", "net margin",
-    "return on equity", "roe", "return on assets", "roa",
+    "revenue",
+    "net income",
+    "earnings per share",
+    "eps",
+    "ebitda",
+    "gross profit",
+    "operating income",
+    "cash flow",
+    "total assets",
+    "total liabilities",
+    "stockholders equity",
+    "shareholders equity",
+    "diluted eps",
+    "basic eps",
+    "operating margin",
+    "net margin",
+    "return on equity",
+    "roe",
+    "return on assets",
+    "roa",
 }
 _METRIC_RE = re.compile(
-    r"\b(" + "|".join(re.escape(k) for k in sorted(_METRIC_KEYWORDS, key=len, reverse=True)) + r")\b",
+    r"\b("
+    + "|".join(re.escape(k) for k in sorted(_METRIC_KEYWORDS, key=len, reverse=True))
+    + r")\b",
     re.IGNORECASE,
 )
 
@@ -95,31 +111,66 @@ def _extract_regex(text: str) -> list[Entity]:
 
     for m in _TICKER_RE.finditer(text):
         ticker = m.group(1) or m.group(2)
-        entities.append(Entity(entity_type="TICKER", value=ticker,
-                               start_char=m.start(), end_char=m.end()))
+        entities.append(
+            Entity(
+                entity_type="TICKER",
+                value=ticker,
+                start_char=m.start(),
+                end_char=m.end(),
+            )
+        )
 
     for m in _CIK_RE.finditer(text):
-        entities.append(Entity(entity_type="CIK", value=m.group(1),
-                               start_char=m.start(), end_char=m.end()))
+        entities.append(
+            Entity(
+                entity_type="CIK",
+                value=m.group(1),
+                start_char=m.start(),
+                end_char=m.end(),
+            )
+        )
 
     for m in _MONEY_RE.finditer(text):
         scale = m.group(2) or ""
-        entities.append(Entity(entity_type="MONEY",
-                               value=f"${m.group(1)} {scale}".strip(),
-                               start_char=m.start(), end_char=m.end()))
+        entities.append(
+            Entity(
+                entity_type="MONEY",
+                value=f"${m.group(1)} {scale}".strip(),
+                start_char=m.start(),
+                end_char=m.end(),
+            )
+        )
 
     for m in _FISCAL_PERIOD_RE.finditer(text):
         val = m.group(0).strip()
-        entities.append(Entity(entity_type="FISCAL_PERIOD", value=val,
-                               start_char=m.start(), end_char=m.end()))
+        entities.append(
+            Entity(
+                entity_type="FISCAL_PERIOD",
+                value=val,
+                start_char=m.start(),
+                end_char=m.end(),
+            )
+        )
 
     for m in _DATE_RE.finditer(text):
-        entities.append(Entity(entity_type="DATE", value=m.group(0),
-                               start_char=m.start(), end_char=m.end()))
+        entities.append(
+            Entity(
+                entity_type="DATE",
+                value=m.group(0),
+                start_char=m.start(),
+                end_char=m.end(),
+            )
+        )
 
     for m in _METRIC_RE.finditer(text):
-        entities.append(Entity(entity_type="METRIC", value=m.group(1).lower(),
-                               start_char=m.start(), end_char=m.end()))
+        entities.append(
+            Entity(
+                entity_type="METRIC",
+                value=m.group(1).lower(),
+                start_char=m.start(),
+                end_char=m.end(),
+            )
+        )
 
     return entities
 
@@ -128,6 +179,7 @@ def _extract_spacy(text: str) -> list[Entity]:
     """spaCy NER path — only loaded if SEC_USE_SPACY=true."""
     try:
         import spacy  # noqa: PLC0415
+
         nlp = spacy.load("en_core_web_sm")
     except Exception as exc:
         logger.warning("spaCy unavailable, falling back to regex", extra={"error": str(exc)})
@@ -136,12 +188,14 @@ def _extract_spacy(text: str) -> list[Entity]:
     doc = nlp(text[:100_000])  # spaCy has a practical token limit
     entities: list[Entity] = []
     for ent in doc.ents:
-        entities.append(Entity(
-            entity_type=ent.label_,
-            value=ent.text,
-            start_char=ent.start_char,
-            end_char=ent.end_char,
-        ))
+        entities.append(
+            Entity(
+                entity_type=ent.label_,
+                value=ent.text,
+                start_char=ent.start_char,
+                end_char=ent.end_char,
+            )
+        )
     # Also run regex for SEC-specific patterns spaCy misses
     entities.extend(_extract_regex(text))
     return entities

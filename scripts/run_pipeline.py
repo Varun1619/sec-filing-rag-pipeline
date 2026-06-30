@@ -12,7 +12,6 @@ Usage:
 from __future__ import annotations
 
 import sys
-import time
 from pathlib import Path
 
 import click
@@ -33,8 +32,11 @@ def cli() -> None:
 
 
 @cli.command()
-@click.option("--ciks", default="0000320193,0001018724,0001652044",
-              help="Comma-separated CIK numbers to ingest.")
+@click.option(
+    "--ciks",
+    default="0000320193,0001018724,0001652044",
+    help="Comma-separated CIK numbers to ingest.",
+)
 @click.option("--forms", default="10-K,10-Q", help="Comma-separated form types.")
 @click.option("--max", "max_per", default=3, help="Max filings per company.")
 def ingest(ciks: str, forms: str, max_per: int) -> None:
@@ -59,8 +61,6 @@ def ingest(ciks: str, forms: str, max_per: int) -> None:
 @cli.command()
 def build() -> None:
     """Parse, chunk, embed and index all downloaded filings."""
-    import json
-    from pathlib import Path
 
     from src.chunk.chunker import chunk_filing
     from src.embed.embedder import get_embedder
@@ -76,6 +76,7 @@ def build() -> None:
 
     # Load filing metadata from DuckDB
     import duckdb
+
     conn = duckdb.connect(str(settings.duckdb_path))
     rows = conn.execute("SELECT * FROM raw_filings").fetchall()
     cols = [d[0] for d in conn.description]
@@ -103,19 +104,22 @@ def build() -> None:
                 texts = [c.text for c in fc]
                 if texts:
                     vecs = embedder.embed(texts)
-                    embedded = [c.model_copy(update={"embedding": v})
-                                for c, v in zip(fc, vecs)]
+                    embedded = [c.model_copy(update={"embedding": v}) for c, v in zip(fc, vecs)]
                     store.upsert_chunks(embedded)
                     wh.upsert_chunks(embedded)
                     all_chunks.extend(embedded)
             except Exception as exc:
-                logger.warning("Error processing filing",
-                               extra={"filing_id": filing.filing_id, "error": str(exc)})
+                logger.warning(
+                    "Error processing filing",
+                    extra={"filing_id": filing.filing_id, "error": str(exc)},
+                )
 
         counts = wh.row_counts()
 
-    logger.info("Reconciliation",
-                extra={"filings_in": len(filings), "chunks_out": len(all_chunks)})
+    logger.info(
+        "Reconciliation",
+        extra={"filings_in": len(filings), "chunks_out": len(all_chunks)},
+    )
     click.echo(f"Built {len(all_chunks)} chunks. DB counts: {counts}")
 
 
@@ -141,6 +145,7 @@ def query(question: str, top_k: int | None) -> None:
     # Build an in-memory store from the embeddings persisted in DuckDB.
     # This avoids the file-lock conflict with the Streamlit app.
     import duckdb
+
     conn = duckdb.connect(str(settings.duckdb_path), read_only=True)
     rows = conn.execute(
         "SELECT chunk_id, filing_id, cik, company_name, form_type, filed_date, "
@@ -161,11 +166,29 @@ def query(question: str, top_k: int | None) -> None:
 
     chunks = []
     for row in rows:
-        chunk_id, filing_id, cik, company, form, filed, idx, text, chars, emb_json, chunked = row
+        (
+            chunk_id,
+            filing_id,
+            cik,
+            company,
+            form,
+            filed,
+            idx,
+            text,
+            chars,
+            emb_json,
+            chunked,
+        ) = row
         chunk = Chunk(
-            chunk_id=chunk_id, filing_id=filing_id, cik=cik,
-            company_name=company, form_type=form, filed_date=filed,
-            chunk_index=idx, text=text, char_count=chars or len(text),
+            chunk_id=chunk_id,
+            filing_id=filing_id,
+            cik=cik,
+            company_name=company,
+            form_type=form,
+            filed_date=filed,
+            chunk_index=idx,
+            text=text,
+            char_count=chars or len(text),
             embedding=json.loads(emb_json),
         )
         chunks.append(chunk)
@@ -211,6 +234,7 @@ def run_eval(eval_set: str, output_dir: str) -> None:
 def run_all(ciks: str, max_per: int) -> None:
     """Convenience: ingest + build + eval in one shot."""
     from click.testing import CliRunner
+
     runner = CliRunner()
     runner.invoke(ingest, [f"--ciks={ciks}", f"--max={max_per}"], catch_exceptions=False)
     runner.invoke(build, [], catch_exceptions=False)

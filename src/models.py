@@ -33,7 +33,7 @@ class Filing(BaseModel):
     form_type: str
     filed_date: date
     period_of_report: date | None = None
-    accession_number: str          # e.g. "0001234567-23-000001"
+    accession_number: str  # e.g. "0001234567-23-000001"
     document_url: str
     local_path: str | None = None  # set after download
     file_size_bytes: int | None = None
@@ -54,7 +54,7 @@ class Filing(BaseModel):
 class Entity(BaseModel):
     """A named entity or financial figure extracted from a chunk."""
 
-    entity_type: str    # e.g. "TICKER", "MONEY", "DATE", "FISCAL_PERIOD", "METRIC"
+    entity_type: str  # e.g. "TICKER", "MONEY", "DATE", "FISCAL_PERIOD", "METRIC"
     value: str
     start_char: int | None = None
     end_char: int | None = None
@@ -106,7 +106,7 @@ class QueryResult(BaseModel):
     query_id: str = Field(default_factory=lambda: str(uuid4()))
     question: str
     retrieved_chunks: list[RetrievedChunk]
-    answer: str | None = None        # None when llm_provider="none"
+    answer: str | None = None  # None when llm_provider="none"
     latency_ms: float = 0.0
     queried_at: datetime = Field(default_factory=datetime.utcnow)
 

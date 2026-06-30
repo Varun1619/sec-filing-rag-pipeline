@@ -85,21 +85,33 @@ class Warehouse:
             )
             """,
             [
-                filing.filing_id, filing.cik, filing.company_name,
-                filing.form_type, filing.filed_date.isoformat(),
-                filing.period_of_report.isoformat() if filing.period_of_report else None,
-                filing.accession_number, filing.document_url,
-                filing.local_path, filing.file_size_bytes,
-                filing.is_scanned_pdf, filing.ingested_at.isoformat(),
+                filing.filing_id,
+                filing.cik,
+                filing.company_name,
+                filing.form_type,
+                filing.filed_date.isoformat(),
+                (filing.period_of_report.isoformat() if filing.period_of_report else None),
+                filing.accession_number,
+                filing.document_url,
+                filing.local_path,
+                filing.file_size_bytes,
+                filing.is_scanned_pdf,
+                filing.ingested_at.isoformat(),
             ],
         )
 
     def upsert_chunks(self, chunks: list[Chunk]) -> int:
         rows = [
             (
-                c.chunk_id, c.filing_id, c.cik, c.company_name,
-                c.form_type, c.filed_date.isoformat(), c.chunk_index,
-                c.text, c.char_count,
+                c.chunk_id,
+                c.filing_id,
+                c.cik,
+                c.company_name,
+                c.form_type,
+                c.filed_date.isoformat(),
+                c.chunk_index,
+                c.text,
+                c.char_count,
                 json.dumps([e.model_dump() for e in c.entities]),
                 json.dumps(c.embedding) if c.embedding else None,
                 c.chunked_at.isoformat(),

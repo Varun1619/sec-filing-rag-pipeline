@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import time
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 from typing import Iterator
 
@@ -105,7 +105,10 @@ def get_company_filings(
 
         filed = date.fromisoformat(filed_str)
         if watermark and filed <= watermark:
-            logger.debug("Skipping (before watermark)", extra={"accession": acc, "filed": filed_str})
+            logger.debug(
+                "Skipping (before watermark)",
+                extra={"accession": acc, "filed": filed_str},
+            )
             continue
 
         norm_acc = acc.replace("-", "")
@@ -117,8 +120,7 @@ def get_company_filings(
         doc_url = (
             f"{settings.edgar_base_url}/Archives/edgar/full-index/"
             if not doc
-            else f"https://www.sec.gov/Archives/edgar/data/{int(padded_cik)}"
-                 f"/{norm_acc}/{doc}"
+            else f"https://www.sec.gov/Archives/edgar/data/{int(padded_cik)}" f"/{norm_acc}/{doc}"
         )
 
         filing = Filing(
@@ -152,8 +154,12 @@ def download_filing(filing: Filing) -> Filing:
 
     if local_path.exists():
         logger.info("Already downloaded", extra={"path": str(local_path)})
-        filing = filing.model_copy(update={"local_path": str(local_path),
-                                           "file_size_bytes": local_path.stat().st_size})
+        filing = filing.model_copy(
+            update={
+                "local_path": str(local_path),
+                "file_size_bytes": local_path.stat().st_size,
+            }
+        )
         return filing
 
     logger.info("Downloading filing", extra={"url": url, "dest": str(local_path)})
@@ -185,6 +191,7 @@ def _is_scanned_pdf(path: Path) -> bool:
     """Heuristic: a PDF with fewer than 100 chars of extractable text is likely scanned."""
     try:
         from pypdf import PdfReader
+
         reader = PdfReader(str(path))
         text = "".join(p.extract_text() or "" for p in reader.pages[:3])
         return len(text.strip()) < 100

@@ -4,20 +4,21 @@ from __future__ import annotations
 
 from datetime import date
 
-import pytest
 
 from src.chunk.chunker import chunk_filing
 from src.embed.embedder import HashingEmbedder
 from src.eval.evaluate import EvalSample, hit_at_k
-from src.models import Chunk, Filing
+from src.models import Filing
 from src.store.qdrant_store import QdrantStore
 
 
 def _in_memory_store(dim: int = 384) -> QdrantStore:
     from qdrant_client import QdrantClient
+
     client = QdrantClient(":memory:")
     # Patch settings for this test
     import src.store.qdrant_store as qs
+
     original_dim = qs.settings.embed_dim
     qs.settings.__dict__["embed_dim"] = dim
     store = QdrantStore(client=client)

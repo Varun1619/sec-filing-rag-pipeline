@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 
 import numpy as np
 import pytest
@@ -25,8 +24,9 @@ def test_hashing_embedder_normalised():
     vecs = emb.embed(["This is a test sentence for normalisation."])
     v = np.array(vecs[0])
     norm = np.linalg.norm(v)
-    assert abs(norm - 1.0) < 1e-5 or norm == pytest.approx(1.0, abs=1e-4), \
-        f"Vector should be L2-normalised; got norm={norm}"
+    assert abs(norm - 1.0) < 1e-5 or norm == pytest.approx(
+        1.0, abs=1e-4
+    ), f"Vector should be L2-normalised; got norm={norm}"
 
 
 def test_hashing_embedder_empty():

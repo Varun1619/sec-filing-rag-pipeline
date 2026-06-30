@@ -21,7 +21,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from src.config import settings
 from src.embed.embedder import BaseEmbedder
 from src.logging_utils import get_logger
 from src.store.qdrant_store import QdrantStore
@@ -39,7 +38,7 @@ class EvalSample:
 
 @dataclass
 class EvalResult:
-    hit_at_k: dict[int, float] = field(default_factory=dict)   # k -> hit rate
+    hit_at_k: dict[int, float] = field(default_factory=dict)  # k -> hit rate
     recall_at_k: dict[int, float] = field(default_factory=dict)
     total_questions: int = 0
     params: dict[str, Any] = field(default_factory=dict)
@@ -84,7 +83,10 @@ def hit_at_k(
                     matched = True
                 elif sample.expected_cik and c.cik == sample.expected_cik:
                     matched = True
-                elif sample.expected_text_contains and sample.expected_text_contains.lower() in c.text.lower():
+                elif (
+                    sample.expected_text_contains
+                    and sample.expected_text_contains.lower() in c.text.lower()
+                ):
                     matched = True
             if matched:
                 hits[k] += 1
@@ -136,15 +138,23 @@ def parameter_sweep(
                 if (
                     (sample.expected_filing_id and c.filing_id == sample.expected_filing_id)
                     or (sample.expected_cik and c.cik == sample.expected_cik)
-                    or (sample.expected_text_contains
-                        and sample.expected_text_contains.lower() in c.text.lower())
+                    or (
+                        sample.expected_text_contains
+                        and sample.expected_text_contains.lower() in c.text.lower()
+                    )
                 ):
                     hits += 1
                     break
         latency = (time.perf_counter() - t0) * 1000
         hit_rate = hits / len(samples) if samples else 0.0
-        rows.append({"top_k": k, "hit_rate": hit_rate, "latency_ms": latency,
-                     "n_questions": len(samples)})
+        rows.append(
+            {
+                "top_k": k,
+                "hit_rate": hit_rate,
+                "latency_ms": latency,
+                "n_questions": len(samples),
+            }
+        )
         logger.info("Sweep point", extra={"top_k": k, "hit_rate": round(hit_rate, 3)})
 
     results_path = output_dir / "sweep_results.json"

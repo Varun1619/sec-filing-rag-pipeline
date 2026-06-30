@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import date
 
-import pytest
 
 from src.chunk.chunker import chunk_filing
 from src.models import Filing

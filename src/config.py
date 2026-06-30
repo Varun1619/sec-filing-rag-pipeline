@@ -14,6 +14,10 @@ from typing import Literal
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Project root = the directory that contains the `src/` package.
+# Resolving paths relative to this means the CLI works regardless of CWD.
+_PROJECT_ROOT = Path(__file__).parent.parent.resolve()
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -30,11 +34,11 @@ class Settings(BaseSettings):
     )
     edgar_base_url: str = "https://data.sec.gov"
     rate_limit_rps: float = 8.0
-    data_dir: Path = Path("./data")
+    data_dir: Path = _PROJECT_ROOT / "data"
     watermark_date: str = ""  # ISO date; empty = fetch all
 
     # ── Chunking ─────────────────────────────────────────────────────────
-    chunk_size: int = 512    # approximate tokens
+    chunk_size: int = 512  # approximate tokens
     chunk_overlap: int = 64
 
     # ── Embedding ─────────────────────────────────────────────────────────
@@ -43,7 +47,7 @@ class Settings(BaseSettings):
     embed_model: str = "BAAI/bge-small-en-v1.5"
 
     # ── Vector store ─────────────────────────────────────────────────────
-    qdrant_location: str = "./qdrant_data"
+    qdrant_location: str = str(_PROJECT_ROOT / "qdrant_data")
     qdrant_collection: str = "sec_chunks"
 
     # ── LLM ──────────────────────────────────────────────────────────────
@@ -52,14 +56,14 @@ class Settings(BaseSettings):
 
     # ── Warehouse ─────────────────────────────────────────────────────────
     warehouse: Literal["duckdb"] = "duckdb"
-    duckdb_path: Path = Path("./warehouse.duckdb")
+    duckdb_path: Path = _PROJECT_ROOT / "warehouse.duckdb"
 
     # ── Retrieval ─────────────────────────────────────────────────────────
     top_k: int = 5
 
     # ── Logging ───────────────────────────────────────────────────────────
     log_level: str = "INFO"
-    log_file: Path = Path("./logs/pipeline.jsonl")
+    log_file: Path = _PROJECT_ROOT / "logs" / "pipeline.jsonl"
 
     @field_validator("data_dir", "duckdb_path", "log_file", mode="before")
     @classmethod
