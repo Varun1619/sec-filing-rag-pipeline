@@ -46,6 +46,9 @@ streamlit>=1.35
 plotly>=5.22
 pandas>=2.2
 
+# LLM
+anthropic>=0.28
+
 # Eval
 ragas>=0.1.9
 matplotlib>=3.9
