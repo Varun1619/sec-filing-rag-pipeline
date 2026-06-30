@@ -1,6 +1,58 @@
 # SEC Filing RAG Pipeline
 
+[![CI](https://github.com/varunsingh09/sec-filing-rag-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/varunsingh09/sec-filing-rag-pipeline/actions/workflows/ci.yml)
+
 A production-grade data engineering pipeline that ingests messy SEC EDGAR HTML/PDF filings, parses and chunks them, enriches with entity extraction, embeds with pluggable backends, and makes them queryable in natural language — all treated as a proper data engineering project with a warehouse, dbt semantic layer, Dagster orchestration, evaluation harness, and Streamlit dashboard.
+
+## Live Demo & Deployment
+
+### Streamlit Community Cloud (recommended)
+
+The app runs in **read-only demo mode** on Streamlit Community Cloud, backed by a
+pre-built dataset of ~20 filings (Apple, Microsoft, Amazon, Alphabet, NVIDIA)
+committed to `demo_assets/warehouse.duckdb`.
+
+**Deploy steps:**
+
+1. Fork / push this repo to a public GitHub account.
+2. Go to [share.streamlit.io](https://share.streamlit.io) → "New app".
+3. Select this repo, branch `main`, main file `app.py`.
+4. Set the **requirements file** to `requirements-app.txt`.
+5. In **Advanced settings → Secrets**, add:
+   ```toml
+   SEC_DEMO_MODE = "true"
+   ```
+6. Click Deploy — the app loads `demo_assets/warehouse.duckdb` at startup with no
+   ingestion or model-download step beyond sentence-transformers (~90 MB).
+
+**To rebuild the demo dataset locally:**
+```bash
+pip install -e ".[sentence-transformers]"
+python scripts/build_demo_data.py          # writes demo_assets/warehouse.duckdb
+git add demo_assets/warehouse.duckdb
+git commit -m "chore: rebuild demo dataset"
+git push
+```
+
+### Self-hosted (Docker + Qdrant Cloud)
+
+```bash
+# Run Qdrant locally
+docker compose up -d qdrant
+
+# Full pipeline
+SEC_EMBEDDER=sentence_transformers
+SEC_QDRANT_LOCATION=http://localhost:6333
+python -m scripts.run_pipeline ingest && python -m scripts.run_pipeline build
+streamlit run app.py
+```
+
+### CI (GitHub Actions)
+
+Push to `main` triggers `.github/workflows/ci.yml`:
+- **black --check** + **ruff check** — code quality gates
+- **pytest** (21 tests, offline, in-memory Qdrant + hashing embedder)
+- **dbt build** — seeds a minimal warehouse and runs all models + 30 data tests
 
 ## Architecture
 
