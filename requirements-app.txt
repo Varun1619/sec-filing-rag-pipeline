@@ -1,0 +1,15 @@
+# Slim requirements for Streamlit Community Cloud (~1 GB RAM).
+# No dagster, dbt, pypdf, bs4, or ragas — the app is read-only in DEMO_MODE.
+# Embedder is sentence-transformers (bge-small-en-v1.5, ~90 MB).
+
+pydantic>=2.7,<3
+pydantic-settings>=2.3,<3
+numpy>=1.26
+scikit-learn>=1.5
+sentence-transformers>=3.0
+qdrant-client>=1.9
+duckdb>=0.10
+streamlit>=1.35
+plotly>=5.22
+pandas>=2.2
+python-dotenv>=1.0
