@@ -6,14 +6,16 @@ Streamlit Community Cloud will serve in read-only DEMO_MODE.
 
 Usage:
     python scripts/build_demo_data.py
-    python scripts/build_demo_data.py --embedder sentence_transformers
+    python scripts/build_demo_data.py --embedder hashing
     python scripts/build_demo_data.py --max-per-company 3 --out demo_assets
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -31,6 +33,57 @@ COMPANIES = {
 }
 
 FORM_TYPES = ["10-K", "10-Q"]
+
+
+def _load_cached_filings(cik: str, bronze_dir: Path, max_filings: int) -> list:
+    """
+    Return up to max_filings Filing objects reconstructed from already-downloaded
+    bronze dir meta.json files, sorted newest-first.
+
+    This bypasses get_company_filings' 'skip already downloaded' check so the
+    build always ingests the most recent locally-cached filings, not the oldest
+    un-downloaded ones.
+    """
+    from src.models import Filing
+
+    padded_cik = cik.zfill(10)
+    company_bronze = bronze_dir / padded_cik
+    if not company_bronze.exists():
+        return []
+
+    filings: list[Filing] = []
+    for meta_file in company_bronze.glob("*/meta.json"):
+        try:
+            data = json.loads(meta_file.read_text(encoding="utf-8"))
+            if data.get("form_type") not in FORM_TYPES:
+                continue
+            local_path = Path(data["local_path"])
+            if not local_path.exists():
+                continue
+            filing = Filing(
+                filing_id=data["filing_id"],
+                cik=data["cik"],
+                company_name=data["company_name"],
+                form_type=data["form_type"],
+                filed_date=date.fromisoformat(data["filed_date"]),
+                period_of_report=(
+                    date.fromisoformat(data["period_of_report"])
+                    if data.get("period_of_report")
+                    else None
+                ),
+                accession_number=data["accession_number"],
+                document_url=data["document_url"],
+                local_path=data["local_path"],
+                file_size_bytes=data.get("file_size_bytes"),
+                is_scanned_pdf=data.get("is_scanned_pdf", False),
+            )
+            filings.append(filing)
+        except Exception as exc:
+            print(f"  Warning: could not load {meta_file}: {exc}")
+
+    # Newest first so we get the most recent filings up to max_filings
+    filings.sort(key=lambda f: f.filed_date, reverse=True)
+    return filings[:max_filings]
 
 
 def build(embedder_name: str, max_per_company: int, out_dir: Path) -> None:
@@ -66,8 +119,6 @@ def build(embedder_name: str, max_per_company: int, out_dir: Path) -> None:
     from src.ingest.parse import parse_filing
     from src.store.warehouse import Warehouse
 
-    # Remove watermark so all filings are re-eligible (already-downloaded files
-    # are still skipped by the local-dir check, so re-download doesn't happen)
     from src.config import settings as _settings
 
     watermark_path = _settings.data_dir / ".watermark"
@@ -75,6 +126,7 @@ def build(embedder_name: str, max_per_company: int, out_dir: Path) -> None:
         watermark_path.unlink()
         print(f"Cleared watermark at {watermark_path}")
 
+    bronze_dir = _settings.bronze_dir()
     embedder = get_embedder()
     wh = Warehouse(path=db_path)
 
@@ -82,13 +134,29 @@ def build(embedder_name: str, max_per_company: int, out_dir: Path) -> None:
     for company_name, cik in COMPANIES.items():
         print(f"\n{'-'*60}")
         print(f"Ingesting {company_name} (CIK {cik}) ...")
+
+        # Prefer already-cached filings (newest-first) so we don't accidentally
+        # ingest old filings just because newer ones were already downloaded.
+        cached = _load_cached_filings(cik, bronze_dir, max_per_company)
+        if cached:
+            print(f"  Using {len(cached)} locally-cached filings (newest-first)")
+            filing_iter = iter(cached)
+        else:
+            print("  No local cache — fetching from EDGAR ...")
+            filing_iter = (
+                download_filing(f)
+                for f in get_company_filings(cik, form_types=FORM_TYPES, max_filings=max_per_company)
+            )
+
         count = 0
-        for filing in get_company_filings(cik, form_types=FORM_TYPES, max_filings=max_per_company):
-            try:
-                filing = download_filing(filing)
-            except Exception as exc:
-                print(f"  Download failed: {exc}")
-                continue
+        for filing in filing_iter:
+            # If coming from cache, local_path is already set; otherwise download
+            if not filing.local_path:
+                try:
+                    filing = download_filing(filing)
+                except Exception as exc:
+                    print(f"  Download failed: {exc}")
+                    continue
 
             text = ""
             if filing.local_path:
@@ -129,15 +197,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Build SEC demo dataset")
     parser.add_argument(
         "--embedder",
-        default="sentence_transformers",
+        default="hashing",
         choices=["hashing", "fastembed", "sentence_transformers"],
-        help="Embedder backend (must match what app.py uses in DEMO_MODE)",
+        help="Embedder backend (stored vectors unused in demo mode — hashing is fastest)",
     )
     parser.add_argument(
         "--max-per-company",
         type=int,
         default=4,
-        help="Max filings per company (15–25 total for 5 companies)",
+        help="Max filings per company (15-25 total for 5 companies)",
     )
     parser.add_argument(
         "--out",
