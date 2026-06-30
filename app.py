@@ -189,7 +189,7 @@ with tab_query:
                 # In demo mode, don't write to warehouse (read-only deployed app)
 
                 with st.spinner("Searching …"):
-                    query_vec = embedder.embed(question)
+                    query_vec = embedder.embed([question])[0]
                     retrieved = store.search(query_vec, top_k=top_k)
 
                 st.caption(f"{len(retrieved)} chunks retrieved")
