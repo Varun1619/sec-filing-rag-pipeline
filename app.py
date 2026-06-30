@@ -195,7 +195,9 @@ with st.sidebar:
     else:
         st.caption(f"Embedder: `{settings.embedder}`")
     st.caption(f"LLM: `{settings.llm_provider}`")
-    st.caption(f"Vector store: `{'in-memory TF-IDF (demo)' if _DEMO_MODE else settings.qdrant_location}`")
+    st.caption(
+        f"Vector store: `{'in-memory TF-IDF (demo)' if _DEMO_MODE else settings.qdrant_location}`"
+    )
     top_k = st.slider("Top-K chunks", 1, 20, settings.top_k)
     if _DEMO_MODE:
         st.caption("🔒 Read-only demo mode")
@@ -235,7 +237,9 @@ with tab_query:
                             )
                         context = "\n\n---\n\n".join(context_parts)
 
-                        if settings.llm_provider == "anthropic" and os.environ.get("ANTHROPIC_API_KEY"):
+                        if settings.llm_provider == "anthropic" and os.environ.get(
+                            "ANTHROPIC_API_KEY"
+                        ):
                             import anthropic
 
                             model = settings.llm_model or "claude-haiku-4-5-20251001"
@@ -260,8 +264,7 @@ with tab_query:
                     latency_ms = (time.perf_counter() - t0) * 1000
 
                 st.caption(
-                    f"Latency: {latency_ms:.0f} ms  |  "
-                    f"{len(retrieved)} chunks retrieved"
+                    f"Latency: {latency_ms:.0f} ms  |  " f"{len(retrieved)} chunks retrieved"
                 )
 
                 if answer:
