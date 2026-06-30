@@ -7,6 +7,9 @@ pydantic-settings>=2.3,<3
 numpy>=1.26
 scikit-learn>=1.5
 sentence-transformers>=3.0
+# datasets 3.x rewrote the pyarrow extension type — fixes pa.PyExtensionType
+# AttributeError on Python 3.14 with pyarrow 18+
+datasets>=3.0
 qdrant-client>=1.9
 duckdb>=0.10
 streamlit>=1.35
