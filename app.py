@@ -533,7 +533,11 @@ def _load_analytics() -> dict:
 # ── Example questions ─────────────────────────────────────────────────────
 
 _EXAMPLES = [
-    ("MSFT", "Microsoft income before taxes", "What was Microsoft's income before taxes in fiscal 2025?"),
+    (
+        "MSFT",
+        "Microsoft income before taxes",
+        "What was Microsoft's income before taxes in fiscal 2025?",
+    ),
     ("NVDA", "NVIDIA total revenue", "What was NVIDIA's total revenue in fiscal 2025?"),
     ("AAPL", "Apple risk factors", "What are Apple's main risk factors?"),
 ]
@@ -789,9 +793,7 @@ with tab_query:
                         c = rc.chunk
                         pct = min(int(rc.score * 100), 100)
                         delay = (i - 1) * 70
-                        snippet = _html.escape(c.text[:600]) + (
-                            "…" if len(c.text) > 600 else ""
-                        )
+                        snippet = _html.escape(c.text[:600]) + ("…" if len(c.text) > 600 else "")
                         cards_html += f"""
                         <article class="fl-source" style="animation-delay:{delay}ms">
                           <div class="fl-source-rank">{i}</div>
@@ -995,7 +997,10 @@ with tab_analytics:
         )
 
         if not data["filings"].empty:
-            st.markdown('<p class="fl-section-head">Filings by company &amp; year</p>', unsafe_allow_html=True)
+            st.markdown(
+                '<p class="fl-section-head">Filings by company &amp; year</p>',
+                unsafe_allow_html=True,
+            )
             st.dataframe(data["filings"], use_container_width=True, hide_index=True)
 
         if not data["recent_queries"].empty:
@@ -1008,7 +1013,10 @@ with tab_analytics:
             import plotly.express as px
 
             sweep = pd.DataFrame(json.loads(sweep_path.read_text()))
-            st.markdown('<p class="fl-section-head">Retrieval eval: hit rate vs top_k</p>', unsafe_allow_html=True)
+            st.markdown(
+                '<p class="fl-section-head">Retrieval eval: hit rate vs top_k</p>',
+                unsafe_allow_html=True,
+            )
             fig = px.line(
                 sweep,
                 x="top_k",
