@@ -1,13 +1,11 @@
 # Slim requirements for Streamlit Community Cloud.
-# Requires Python 3.11 (see runtime.txt) — sentence-transformers 3.x is
-# incompatible with Python 3.14 due to pyarrow 18 removing pa.PyExtensionType.
+# Demo mode uses TF-IDF (scikit-learn) for retrieval — no model download needed.
+# Anthropic API handles LLM generation.
 
 pydantic>=2.7,<3
 pydantic-settings>=2.3,<3
 numpy>=1.26
 scikit-learn>=1.5
-# fastembed: ONNX-based embeddings, no datasets/pyarrow dependency chain
-fastembed>=0.3
 qdrant-client>=1.9
 duckdb>=0.10
 streamlit>=1.35
