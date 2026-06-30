@@ -29,8 +29,18 @@ _DEMO_DB = _PROJECT_ROOT / "demo_assets" / "warehouse.duckdb"
 
 if _DEMO_MODE:
     os.environ.setdefault("SEC_DUCKDB_PATH", str(_DEMO_DB))
-    os.environ.setdefault("SEC_EMBEDDER", "hashing")
+    os.environ.setdefault("SEC_EMBEDDER", "sentence_transformers")
     os.environ.setdefault("SEC_QDRANT_LOCATION", ":memory:")
+    os.environ.setdefault("SEC_LLM_PROVIDER", "anthropic")
+    os.environ.setdefault("SEC_LLM_MODEL", "claude-haiku-4-5-20251001")
+    # Surface the Anthropic key from Streamlit secrets if present
+    try:
+        import streamlit as _st
+
+        if hasattr(_st, "secrets") and "ANTHROPIC_API_KEY" in _st.secrets:
+            os.environ.setdefault("ANTHROPIC_API_KEY", _st.secrets["ANTHROPIC_API_KEY"])
+    except Exception:
+        pass
 
 from src.config import settings  # noqa: E402
 from src.logging_utils import setup_logging  # noqa: E402
@@ -186,15 +196,31 @@ with tab_query:
             st.error("Vector index not available — no embeddings in demo warehouse.")
         else:
             if _DEMO_MODE:
-                # In demo mode, don't write to warehouse (read-only deployed app)
+                # Demo mode: full RAG pipeline (retrieve + generate) but no
+                # warehouse writes — use a temporary in-memory DuckDB for logging.
+                import duckdb as _duckdb
 
-                with st.spinner("Searching …"):
-                    query_vec = embedder.embed([question])[0]
-                    retrieved = store.search(query_vec, top_k=top_k)
+                from src.rag.pipeline import RAGPipeline
+                from src.store.warehouse import Warehouse
 
-                st.caption(f"{len(retrieved)} chunks retrieved")
+                _tmp_conn = _duckdb.connect(":memory:")
+                _tmp_wh = Warehouse(path=":memory:")
+                with st.spinner("Searching and generating answer …"):
+                    pipeline = RAGPipeline(embedder, store, _tmp_wh)
+                    result = pipeline.query(question, top_k=top_k)
+                _tmp_wh.close()
+
+                st.caption(
+                    f"Latency: {result.latency_ms:.0f} ms  |  "
+                    f"{len(result.retrieved_chunks)} chunks retrieved"
+                )
+
+                if result.answer:
+                    st.subheader("Answer")
+                    st.write(result.answer)
+
                 st.subheader("Source Chunks")
-                for i, rc in enumerate(retrieved, 1):
+                for i, rc in enumerate(result.retrieved_chunks, 1):
                     c = rc.chunk
                     with st.expander(
                         f"[{i}] {c.company_name} — {c.form_type} ({c.filed_date})"

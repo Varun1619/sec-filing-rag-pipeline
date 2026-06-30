@@ -89,7 +89,12 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         model_name = settings.embed_model
         logger.info("Loading SentenceTransformer model", extra={"model": model_name})
         self._model = SentenceTransformer(model_name)
-        self._dim = self._model.get_sentence_embedding_dimension()
+        get_dim = getattr(
+            self._model,
+            "get_embedding_dimension",
+            self._model.get_sentence_embedding_dimension,
+        )
+        self._dim = get_dim()
         logger.info("SentenceTransformer ready", extra={"dim": self._dim})
 
     @property
