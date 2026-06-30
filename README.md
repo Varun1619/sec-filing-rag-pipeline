@@ -1,40 +1,51 @@
 # SEC Filing RAG Pipeline
 
-[![CI](https://github.com/varunsingh09/sec-filing-rag-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/varunsingh09/sec-filing-rag-pipeline/actions/workflows/ci.yml)
+[![CI](https://github.com/Varun1619/sec-filing-rag-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/Varun1619/sec-filing-rag-pipeline/actions/workflows/ci.yml)
 
 A production-grade data engineering pipeline that ingests messy SEC EDGAR HTML/PDF filings, parses and chunks them, enriches with entity extraction, embeds with pluggable backends, and makes them queryable in natural language — all treated as a proper data engineering project with a warehouse, dbt semantic layer, Dagster orchestration, evaluation harness, and Streamlit dashboard.
 
+## Live Demo
+
+**[Try the live demo on Streamlit Community Cloud](https://sec-filing-rag-pipeline.streamlit.app)**
+
+Ask natural-language questions across 20 SEC filings (Apple, Microsoft, Amazon, Alphabet, NVIDIA — 2025–2026). The demo uses a TF-IDF retrieval index built from 2,342 chunks at startup and Anthropic claude-haiku for answer generation. No login required.
+
+Example questions to try:
+- *What was Microsoft's income before taxes in fiscal 2025?*
+- *What was NVIDIA's total revenue in fiscal 2025?*
+- *What are Apple's main risk factors?*
+
 ## Live Demo & Deployment
 
-### Streamlit Community Cloud (recommended)
+### Streamlit Community Cloud
 
-The app runs in **read-only demo mode** on Streamlit Community Cloud, backed by a
-pre-built dataset of ~20 filings (Apple, Microsoft, Amazon, Alphabet, NVIDIA)
-committed to `demo_assets/warehouse.duckdb`.
+The app runs in **read-only demo mode** backed by a pre-built dataset of 20 filings
+(Apple, Microsoft, Amazon, Alphabet, NVIDIA) committed to `demo_assets/warehouse.duckdb`.
+At startup it builds an in-memory TF-IDF index over 2,342 chunks — no model download.
 
 **Deploy steps:**
 
 1. Fork / push this repo to a public GitHub account.
 2. Go to [share.streamlit.io](https://share.streamlit.io) → "New app".
 3. Select this repo, branch `main`, main file `app.py`.
-4. Set the **requirements file** to `requirements-app.txt`.
+4. In **Advanced settings → Python version**, set **3.11**.
 5. In **Advanced settings → Secrets**, add:
    ```toml
    SEC_DEMO_MODE = "true"
+   ANTHROPIC_API_KEY = "sk-ant-..."
    ```
-6. Click Deploy — the app loads `demo_assets/warehouse.duckdb` at startup with no
-   ingestion or model-download step beyond sentence-transformers (~90 MB).
+6. Click Deploy — the app starts serving immediately with no ingestion step.
 
 **To rebuild the demo dataset locally:**
 ```bash
-pip install -e ".[sentence-transformers]"
 python scripts/build_demo_data.py          # writes demo_assets/warehouse.duckdb
 git add demo_assets/warehouse.duckdb
 git commit -m "chore: rebuild demo dataset"
 git push
 ```
+The script reads already-downloaded filings from `data/bronze/` (sorted newest-first) and falls back to fetching from EDGAR if the cache is empty. Use `--embedder hashing` (default) for speed — stored embeddings are not used by the TF-IDF demo mode.
 
-### Self-hosted (Docker + Qdrant Cloud)
+### Self-hosted (Docker + Qdrant)
 
 ```bash
 # Run Qdrant locally
@@ -97,7 +108,7 @@ pytest
 streamlit run app.py
 ```
 
-Or use `make e2e` to run steps 3-7 in one shot.
+Or use `make e2e` to run steps 3–7 in one shot.
 
 ## Scaling to 500+ Filings
 
@@ -121,30 +132,33 @@ All backends are swapped in `.env` — no code changes:
 
 | What | Variable | Options |
 |------|----------|---------|
-| Embedder | `SEC_EMBEDDER` | `hashing` (default, offline), `sentence_transformers`, `openai` |
+| Embedder | `SEC_EMBEDDER` | `hashing` (default, offline), `fastembed` (ONNX, no extra deps), `sentence_transformers`, `openai` |
 | LLM | `SEC_LLM_PROVIDER` | `none` (default), `openai`, `anthropic`, `groq` |
 | Vector store | `SEC_QDRANT_LOCATION` | `./qdrant_data` (default), `:memory:`, `http://localhost:6333` |
 | Warehouse | `SEC_DUCKDB_PATH` | `./warehouse.duckdb` (swap dbt profile for Snowflake) |
 
-### Example: switch to semantic embeddings + GPT-4o-mini
+### Example: switch to semantic embeddings + Claude
 
 ```bash
 SEC_EMBEDDER=sentence_transformers
-SEC_LLM_PROVIDER=openai
-SEC_LLM_MODEL=gpt-4o-mini
-OPENAI_API_KEY=sk-...
+SEC_LLM_PROVIDER=anthropic
+SEC_LLM_MODEL=claude-haiku-4-5-20251001
+ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 ## Design Decisions & Tradeoffs
 
 **Why DuckDB instead of Snowflake?**  
-DuckDB runs locally with zero infrastructure and is fast enough for millions of rows. The dbt profile is the only change needed to point at Snowflake — the SQL models are identical (standard SQL).
+DuckDB runs locally with zero infrastructure and is fast enough for millions of rows. The dbt profile is the only change needed to point at Snowflake — the SQL models are identical.
 
 **Why embedded Qdrant instead of Qdrant Cloud?**  
 `qdrant-client` supports an embedded persistent mode (`path=./qdrant_data`) with no server process. The application code is identical to the Docker/Cloud mode — swap `SEC_QDRANT_LOCATION` and you're done.
 
-**Why HashingVectorizer as the default embedder?**  
-It has zero cold-start (no model download), works fully offline, and is deterministic. It's not semantically meaningful but makes the pipeline runnable immediately. Switch to `sentence_transformers` for real retrieval quality.
+**Why TF-IDF for the Streamlit demo instead of a neural embedder?**  
+`fastembed` (ONNX) and `sentence-transformers` both failed to install reliably on Streamlit Community Cloud due to binary dependency conflicts (`onnxruntime`, `pyarrow`). A scikit-learn `TfidfVectorizer` fitted on the corpus at startup is guaranteed to work, has IDF weighting (common financial boilerplate is downweighted), and adds zero install-time dependencies. Company names are prepended to each indexed chunk so company-specific queries anchor correctly. For local use, switch to `sentence_transformers` for full semantic retrieval.
+
+**Why HashingVectorizer as the default offline embedder?**  
+It has zero cold-start (no model download), works fully offline, and is deterministic. It is not semantically meaningful but makes the pipeline runnable immediately. Switch to `sentence_transformers` or `fastembed` for real retrieval quality.
 
 **Why is generation optional?**  
 `SEC_LLM_PROVIDER=none` (the default) returns ranked chunks without generation. This keeps the pipeline runnable without any API key and makes retrieval quality independently measurable.
@@ -162,7 +176,7 @@ dbt `schema.yml` tests (`not_null`, `unique`, `relationships`) run on every `dbt
 | Ingest, parse, chunk, embed, index | None |
 | Deterministic retrieval eval (Hit@k) | None |
 | Streamlit dashboard (analytics tab) | None |
-| Sentence-transformers embeddings | None (downloads ~130 MB on first run) |
+| Sentence-transformers / fastembed embeddings | None (downloads model on first run) |
 | LLM-generated answers | OpenAI / Anthropic / Groq key |
 | RAGAS evaluation (faithfulness) | OpenAI key |
 
@@ -176,19 +190,22 @@ sec-filing-rag-pipeline/
 │   ├── logging_utils.py    # structured JSON logging
 │   ├── ingest/             # EDGAR downloader, HTML/PDF parser, entity extractor
 │   ├── chunk/              # fixed-window chunker with overlap
-│   ├── embed/              # pluggable embedder (hashing / SBERT / OpenAI)
+│   ├── embed/              # pluggable embedder (hashing / fastembed / SBERT / OpenAI)
 │   ├── store/              # Qdrant wrapper + DuckDB warehouse
 │   ├── rag/                # query pipeline (retrieve + optional generate)
 │   └── eval/               # Hit@k sweep + RAGAS wiring
 ├── dagster_defs/           # Dagster software-defined assets
 ├── dbt/                    # dbt project: staging + marts, schema tests
-├── scripts/                # CLI entry point, eval set generator
-├── tests/                  # pytest unit tests
+├── scripts/                # CLI entry point, demo data builder, eval set generator
+├── tests/                  # pytest unit tests (21 tests, fully offline)
+├── demo_assets/            # pre-built warehouse.duckdb (20 filings, 2,342 chunks)
 ├── eval_data/              # labeled QA set
 ├── docs/                   # architecture + ERD diagrams
 ├── app.py                  # Streamlit dashboard
 ├── Makefile
 ├── pyproject.toml
+├── requirements.txt        # full pipeline deps (local dev / CI)
+├── requirements-app.txt    # slim deps for Streamlit Cloud
 ├── .env.example
 └── docker-compose.yml      # optional Qdrant server
 ```
