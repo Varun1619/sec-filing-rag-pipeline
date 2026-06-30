@@ -77,7 +77,7 @@ def _ticker(company_name: str) -> str:
 
 # ── Global styles + IBM Plex fonts ────────────────────────────────────────
 
-st.markdown(
+st.html(
     """
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -385,13 +385,12 @@ header[data-testid="stHeader"] { display:none !important; }
 .fl-section-head { font:600 .92rem/1 var(--sans); letter-spacing:-.01em; color:var(--ink); margin:24px 0 12px; }
 </style>
 """,
-    unsafe_allow_html=True,
 )
 
 # ── Demo banner ───────────────────────────────────────────────────────────
 
 if _DEMO_MODE:
-    st.markdown(
+    st.html(
         """
     <div class="fl-demostrip">
       <span class="fl-dot"></span>
@@ -401,7 +400,6 @@ if _DEMO_MODE:
       <a href="https://github.com/varunsingh09/sec-filing-rag-pipeline">View source on GitHub</a></span>
     </div>
     """,
-        unsafe_allow_html=True,
     )
 
 # ── Demo: TF-IDF search index (built once, cached for the session) ────────
@@ -549,7 +547,7 @@ with st.sidebar:
     vector_store_display = "In-memory" if _DEMO_MODE else settings.qdrant_location
     badge = '<span class="fl-badge">demo</span>' if _DEMO_MODE else ""
 
-    st.markdown(
+    st.html(
         f"""
     <div class="fl-panel">
       <div class="fl-panel-head">
@@ -576,12 +574,11 @@ with st.sidebar:
       </div>
       <div class="fl-panel-body">
     """,
-        unsafe_allow_html=True,
     )
 
     top_k = st.slider("Top-K chunks", 1, 20, settings.top_k, label_visibility="collapsed")
 
-    st.markdown(
+    st.html(
         """
       </div>
     </div>
@@ -604,11 +601,10 @@ with st.sidebar:
       </div>
     </div>
     """,
-        unsafe_allow_html=True,
     )
 
     if _DEMO_MODE:
-        st.markdown(
+        st.html(
             """
         <div class="fl-demo-lock">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -618,7 +614,6 @@ with st.sidebar:
           Read-only demo. Connect a backend to query the full corpus.
         </div>
         """,
-            unsafe_allow_html=True,
         )
 
 # ── Tabs ──────────────────────────────────────────────────────────────────
@@ -628,7 +623,7 @@ tab_query, tab_analytics = st.tabs(["🔍  Ask a question", "📊  Pipeline anal
 # ── Tab 1: Query ──────────────────────────────────────────────────────────
 
 with tab_query:
-    st.markdown(
+    st.html(
         """
     <div class="fl-hero">
       <div class="fl-eyebrow">Grounded retrieval</div>
@@ -637,7 +632,6 @@ with tab_query:
          Every answer is grounded in the exact passages it was retrieved from.</p>
     </div>
     """,
-        unsafe_allow_html=True,
     )
 
     # Initialise session state for the question input
@@ -666,7 +660,7 @@ with tab_query:
     should_run = (search_btn or run_example) and question.strip()
 
     if not should_run:
-        st.markdown(
+        st.html(
             """
         <div class="fl-placeholder">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -679,7 +673,6 @@ with tab_query:
           <p>Ask a question to retrieve cited passages from the filing corpus.</p>
         </div>
         """,
-            unsafe_allow_html=True,
         )
 
     if should_run:
@@ -742,7 +735,7 @@ with tab_query:
                         )
 
                     answer_html = _html.escape(answer).replace("\n", "<br>")
-                    st.markdown(
+                    st.html(
                         f"""
                     <div class="fl-answer-card">
                       <div class="fl-answer-top">
@@ -773,19 +766,17 @@ with tab_query:
                       </div>
                     </div>
                     """,
-                        unsafe_allow_html=True,
                     )
 
                 # ── Source chunks ─────────────────────────────────────────
                 if retrieved:
-                    st.markdown(
+                    st.html(
                         f"""
                     <div class="fl-sources-head">
                       <h2>Retrieved passages</h2>
                       <span class="fl-hint">{len(retrieved)} chunk{"s" if len(retrieved) != 1 else ""} · ranked by relevance</span>
                     </div>
                     """,
-                        unsafe_allow_html=True,
                     )
 
                     cards_html = '<div class="fl-sources">'
@@ -812,7 +803,7 @@ with tab_query:
                         </article>
                         """
                     cards_html += "</div>"
-                    st.markdown(cards_html, unsafe_allow_html=True)
+                    st.html(cards_html)
 
         else:
             # ── Full pipeline path ────────────────────────────────────────
@@ -839,7 +830,7 @@ with tab_query:
                     )
 
                 answer_html = _html.escape(result.answer).replace("\n", "<br>")
-                st.markdown(
+                st.html(
                     f"""
                 <div class="fl-answer-card">
                   <div class="fl-answer-top">
@@ -863,18 +854,16 @@ with tab_query:
                   </div>
                 </div>
                 """,
-                    unsafe_allow_html=True,
                 )
 
             if result.retrieved_chunks:
-                st.markdown(
+                st.html(
                     f"""
                 <div class="fl-sources-head">
                   <h2>Retrieved passages</h2>
                   <span class="fl-hint">{len(result.retrieved_chunks)} chunks · ranked by relevance</span>
                 </div>
                 """,
-                    unsafe_allow_html=True,
                 )
 
                 cards_html = '<div class="fl-sources">'
@@ -901,12 +890,12 @@ with tab_query:
                     </article>
                     """
                 cards_html += "</div>"
-                st.markdown(cards_html, unsafe_allow_html=True)
+                st.html(cards_html)
 
 # ── Tab 2: Analytics ──────────────────────────────────────────────────────
 
 with tab_analytics:
-    st.markdown(
+    st.html(
         """
     <div class="fl-pipe-intro">
       <h2>Pipeline analytics</h2>
@@ -915,11 +904,10 @@ with tab_analytics:
          In demo mode the upstream stages are frozen.</p>
     </div>
     """,
-        unsafe_allow_html=True,
     )
 
     # Pipeline stages
-    st.markdown(
+    st.html(
         """
     <div class="fl-pipe-grid">
       <div class="fl-stage fl-off">
@@ -954,7 +942,6 @@ with tab_analytics:
       </div>
     </div>
     """,
-        unsafe_allow_html=True,
     )
 
     data = _load_analytics()
@@ -972,7 +959,7 @@ with tab_analytics:
         n_chunks = _count("raw_chunks")
         n_queries = _count("raw_query_logs")
 
-        st.markdown(
+        st.html(
             f"""
         <div class="fl-metrics">
           <div class="fl-metric">
@@ -993,18 +980,16 @@ with tab_analytics:
           </div>
         </div>
         """,
-            unsafe_allow_html=True,
         )
 
         if not data["filings"].empty:
-            st.markdown(
+            st.html(
                 '<p class="fl-section-head">Filings by company &amp; year</p>',
-                unsafe_allow_html=True,
             )
             st.dataframe(data["filings"], use_container_width=True, hide_index=True)
 
         if not data["recent_queries"].empty:
-            st.markdown('<p class="fl-section-head">Recent queries</p>', unsafe_allow_html=True)
+            st.html('<p class="fl-section-head">Recent queries</p>')
             st.dataframe(data["recent_queries"], use_container_width=True, hide_index=True)
 
         sweep_path = _PROJECT_ROOT / "eval_results" / "sweep_results.json"
@@ -1013,9 +998,8 @@ with tab_analytics:
             import plotly.express as px
 
             sweep = pd.DataFrame(json.loads(sweep_path.read_text()))
-            st.markdown(
+            st.html(
                 '<p class="fl-section-head">Retrieval eval: hit rate vs top_k</p>',
-                unsafe_allow_html=True,
             )
             fig = px.line(
                 sweep,
