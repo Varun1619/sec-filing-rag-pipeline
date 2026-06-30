@@ -998,8 +998,16 @@ with tab_analytics:
             import plotly.express as px
 
             sweep = pd.DataFrame(json.loads(sweep_path.read_text()))
+            st.html('<p class="fl-section-head">Retrieval eval: Hit@k — TF-IDF retriever</p>')
             st.html(
-                '<p class="fl-section-head">Retrieval eval: hit rate vs top_k</p>',
+                """
+            <p style="font:400 .82rem/1.5 var(--sans,sans-serif);color:#5E6873;margin:0 0 12px;">
+              Measured on the deployed TF-IDF retriever against 20 auto-generated questions
+              (each question is derived from the first 80 characters of its target chunk, so
+              this is a <strong>self-recall</strong> benchmark — not a held-out quality eval).
+              Re-run with <code style="font-size:.78rem">python scripts/eval_tfidf.py</code>.
+            </p>
+            """
             )
             fig = px.line(
                 sweep,
@@ -1014,6 +1022,7 @@ with tab_analytics:
                 plot_bgcolor="rgba(0,0,0,0)",
                 font_family="IBM Plex Sans",
                 margin=dict(l=0, r=0, t=8, b=0),
+                yaxis_range=[0, 1.05],
             )
             fig.update_xaxes(showgrid=True, gridcolor="#D9DEE4", zeroline=False)
             fig.update_yaxes(showgrid=True, gridcolor="#D9DEE4", zeroline=False)

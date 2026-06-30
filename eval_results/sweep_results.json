@@ -1,0 +1,26 @@
+[
+  {
+    "top_k": 1,
+    "hit_rate": 1.0,
+    "latency_ms": 517.201,
+    "n_questions": 20
+  },
+  {
+    "top_k": 3,
+    "hit_rate": 1.0,
+    "latency_ms": 465.549,
+    "n_questions": 20
+  },
+  {
+    "top_k": 5,
+    "hit_rate": 1.0,
+    "latency_ms": 476.701,
+    "n_questions": 20
+  },
+  {
+    "top_k": 10,
+    "hit_rate": 1.0,
+    "latency_ms": 468.129,
+    "n_questions": 20
+  }
+]

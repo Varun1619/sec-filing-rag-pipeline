@@ -51,4 +51,5 @@ Thumbs.db
 *.swp
 
 # Evaluation outputs (regeneratable)
-eval_results/
+eval_results/*
+!eval_results/sweep_results.json
