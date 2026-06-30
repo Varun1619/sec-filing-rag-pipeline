@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     chunk_overlap: int = 64
 
     # ── Embedding ─────────────────────────────────────────────────────────
-    embedder: Literal["hashing", "sentence_transformers", "openai"] = "hashing"
+    embedder: Literal["hashing", "fastembed", "sentence_transformers", "openai"] = "hashing"
     embed_dim: int = 384
     embed_model: str = "BAAI/bge-small-en-v1.5"
 

@@ -37,6 +37,12 @@ def build(embedder_name: str, max_per_company: int, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     db_path = out_dir / "warehouse.duckdb"
 
+    # Always start from a clean database so embeddings from previous builds
+    # with different backends don't pollute the similarity search index.
+    if db_path.exists():
+        db_path.unlink()
+        print(f"Deleted old database at {db_path}")
+
     # Override settings for the demo build
     import os
 
@@ -124,7 +130,7 @@ def main() -> None:
     parser.add_argument(
         "--embedder",
         default="sentence_transformers",
-        choices=["hashing", "sentence_transformers"],
+        choices=["hashing", "fastembed", "sentence_transformers"],
         help="Embedder backend (must match what app.py uses in DEMO_MODE)",
     )
     parser.add_argument(

@@ -29,7 +29,7 @@ _DEMO_DB = _PROJECT_ROOT / "demo_assets" / "warehouse.duckdb"
 
 if _DEMO_MODE:
     os.environ.setdefault("SEC_DUCKDB_PATH", str(_DEMO_DB))
-    os.environ.setdefault("SEC_EMBEDDER", "sentence_transformers")
+    os.environ.setdefault("SEC_EMBEDDER", "fastembed")
     os.environ.setdefault("SEC_QDRANT_LOCATION", ":memory:")
     os.environ.setdefault("SEC_LLM_PROVIDER", "anthropic")
     os.environ.setdefault("SEC_LLM_MODEL", "claude-haiku-4-5-20251001")

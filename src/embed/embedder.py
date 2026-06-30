@@ -8,8 +8,11 @@ Backends
 --------
 hashing           — sklearn HashingVectorizer; works fully offline, no download.
                     Vectors are unit-normalised so cosine ≈ dot-product.
-sentence_transformers — BAAI/bge-small-en-v1.5 (or any SBERT model); first run
-                    downloads ~130 MB to the HuggingFace cache.
+fastembed         — BAAI/bge-small-en-v1.5 via ONNX (fastembed package).
+                    No datasets/pyarrow dependency; ~90 MB download on first use.
+sentence_transformers — BAAI/bge-small-en-v1.5 via PyTorch sentence-transformers.
+                    Downloads ~130 MB on first use. Not suitable for Streamlit Cloud
+                    due to datasets/pyarrow conflicts.
 openai            — text-embedding-3-small via the OpenAI API; requires OPENAI_API_KEY.
 """
 
@@ -108,6 +111,36 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         return vecs.tolist()
 
 
+class FastEmbedEmbedder(BaseEmbedder):
+    """
+    Semantic embeddings via fastembed (ONNX runtime, no datasets/pyarrow dep).
+
+    Drop-in replacement for SentenceTransformerEmbedder — same model, same
+    384-dim output — but installs cleanly on Python 3.11+ / 3.14+ without
+    the sentence-transformers → datasets → pyarrow conflict chain.
+    """
+
+    def __init__(self) -> None:
+        from fastembed import TextEmbedding  # type: ignore[import]
+
+        model_name = settings.embed_model
+        logger.info("Loading FastEmbed model", extra={"model": model_name})
+        self._model = TextEmbedding(model_name=model_name)
+        self._dim = 384  # bge-small-en-v1.5 output dimension
+        logger.info("FastEmbed ready", extra={"dim": self._dim})
+
+    @property
+    def dim(self) -> int:
+        return self._dim
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        if not texts:
+            return []
+        vecs = np.array(list(self._model.embed(texts)), dtype=np.float32)
+        vecs = self._l2_normalise(vecs)
+        return vecs.tolist()
+
+
 class OpenAIEmbedder(BaseEmbedder):
     """OpenAI text-embedding-3-small (or any openai embedding model)."""
 
@@ -144,6 +177,8 @@ def get_embedder() -> BaseEmbedder:
     backend = settings.embedder
     if backend == "hashing":
         return HashingEmbedder()
+    elif backend == "fastembed":
+        return FastEmbedEmbedder()
     elif backend == "sentence_transformers":
         return SentenceTransformerEmbedder()
     elif backend == "openai":
