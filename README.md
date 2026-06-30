@@ -1,8 +1,20 @@
-# SEC Filing RAG Pipeline
+<div align="center">
 
-[![CI](https://github.com/Varun1619/sec-filing-rag-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/Varun1619/sec-filing-rag-pipeline/actions/workflows/ci.yml)
+<img src="docs/header.svg" alt="FilingLens — SEC Filing RAG Pipeline" width="900"/>
 
-A production-grade data engineering pipeline that ingests messy SEC EDGAR HTML/PDF filings, parses and chunks them, enriches with entity extraction, embeds with pluggable backends, and makes them queryable in natural language — all treated as a proper data engineering project with a warehouse, dbt semantic layer, Dagster orchestration, evaluation harness, and Streamlit dashboard.
+<br/>
+
+[![CI](https://img.shields.io/github/actions/workflow/status/Varun1619/sec-filing-rag-pipeline/ci.yml?branch=main&style=flat&label=CI&color=163A36)](https://github.com/Varun1619/sec-filing-rag-pipeline/actions/workflows/ci.yml)
+[![Live Demo](https://img.shields.io/badge/demo-live%20on%20Streamlit-163A36?style=flat&logo=streamlit&logoColor=F7DA74)](https://sec-filing-rag-pipeline.streamlit.app)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-163A36?style=flat&logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3110/)
+[![dbt](https://img.shields.io/badge/dbt-semantic%20layer-163A36?style=flat&logo=dbt&logoColor=F7DA74)](https://www.getdbt.com)
+[![Dagster](https://img.shields.io/badge/Dagster-orchestration-163A36?style=flat)](https://dagster.io)
+
+</div>
+
+---
+
+A production-grade data engineering pipeline that ingests SEC EDGAR filings, parses and chunks them, embeds with pluggable backends, and makes them queryable in natural language — built as a proper data engineering project with a DuckDB warehouse, dbt semantic layer, Dagster orchestration, evaluation harness, and Streamlit dashboard.
 
 ## Live Demo
 

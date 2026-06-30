@@ -1,0 +1,83 @@
+<svg width="900" height="180" viewBox="0 0 900 180" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#E4E8ED"/>
+      <stop offset="100%" stop-color="#EEF1F5"/>
+    </linearGradient>
+    <linearGradient id="hl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FCEDB8"/>
+      <stop offset="100%" stop-color="#F7DA74"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="180" fill="url(#bg)" rx="0"/>
+
+  <!-- Left accent bar -->
+  <rect x="0" y="0" width="5" height="180" fill="#163A36"/>
+
+  <!-- ── Logo mark ── -->
+  <rect x="44" y="50" width="80" height="80" rx="14" fill="#163A36"/>
+  <!-- Document -->
+  <rect x="57" y="61" width="43" height="57" rx="4.5" fill="white" opacity="0.93"/>
+  <!-- Lines on document -->
+  <rect x="64" y="72"  width="24" height="4.5" rx="2.2" fill="#163A36"/>
+  <rect x="64" y="81"  width="24" height="4.5" rx="2.2" fill="#F7DA74"/>
+  <rect x="64" y="90"  width="15" height="4.5" rx="2.2" fill="#163A36"/>
+  <!-- Search circle + handle -->
+  <circle cx="89" cy="101" r="11" fill="none" stroke="#F7DA74" stroke-width="3.8"/>
+  <line x1="97.5" y1="109.5" x2="106" y2="118" stroke="#F7DA74" stroke-width="3.8" stroke-linecap="round"/>
+
+  <!-- ── Wordmark ── -->
+  <text x="148" y="101"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-weight="700" font-size="42" letter-spacing="-1.5" fill="#15191E">FilingLens</text>
+  <text x="150" y="126"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-size="15" letter-spacing="0.2" fill="#5E6873">SEC Filing RAG Pipeline</text>
+
+  <!-- ── Divider ── -->
+  <line x1="440" y1="48" x2="440" y2="132" stroke="#D9DEE4" stroke-width="1"/>
+
+  <!-- ── Right panel — tagline ── -->
+  <!-- Highlight band behind last word -->
+  <rect x="600" y="88" width="252" height="28" rx="5"
+        fill="url(#hl)" opacity="0.7"/>
+
+  <text x="465" y="83"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-size="16" fill="#5E6873">Ask questions across 10-K &amp; 10-Q filings.</text>
+  <text x="465" y="109"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-size="16" fill="#15191E">Every answer is</text>
+  <text x="605" y="109"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-weight="700" font-size="16" fill="#15191E">traced to the source.</text>
+
+  <!-- Stack pills -->
+  <!-- dbt -->
+  <rect x="465" y="128" width="42" height="22" rx="6" fill="#163A36"/>
+  <text x="486" y="143" text-anchor="middle"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-weight="600" font-size="11" fill="white">dbt</text>
+  <!-- Dagster -->
+  <rect x="513" y="128" width="60" height="22" rx="6" fill="#163A36"/>
+  <text x="543" y="143" text-anchor="middle"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-weight="600" font-size="11" fill="white">Dagster</text>
+  <!-- DuckDB -->
+  <rect x="579" y="128" width="62" height="22" rx="6" fill="#163A36"/>
+  <text x="610" y="143" text-anchor="middle"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-weight="600" font-size="11" fill="white">DuckDB</text>
+  <!-- Qdrant -->
+  <rect x="647" y="128" width="56" height="22" rx="6" fill="#163A36"/>
+  <text x="675" y="143" text-anchor="middle"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-weight="600" font-size="11" fill="white">Qdrant</text>
+  <!-- Claude -->
+  <rect x="709" y="128" width="56" height="22" rx="6" fill="#F7DA74"/>
+  <text x="737" y="143" text-anchor="middle"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-weight="700" font-size="11" fill="#163A36">Claude</text>
+</svg>
