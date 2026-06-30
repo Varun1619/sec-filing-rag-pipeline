@@ -114,10 +114,16 @@ def _get_demo_searcher():
         )
         for r in rows
     ]
-    texts = [c.text for c in chunks]
+    # Prepend company name + form type + year so company-name query terms
+    # (e.g. "Apple") reliably anchor retrieval to the right company.
+    # SEC filing bodies use "we"/"the Company" throughout, so without this
+    # the company name never appears in the chunk text.
+    indexed_texts = [
+        f"{c.company_name} {c.form_type} {c.filed_date.year}: {c.text}" for c in chunks
+    ]
 
     vectorizer = TfidfVectorizer(max_features=50_000, ngram_range=(1, 2), sublinear_tf=True)
-    matrix = vectorizer.fit_transform(texts)
+    matrix = vectorizer.fit_transform(indexed_texts)
 
     def search(question: str, top_k: int = 5) -> list[RetrievedChunk]:
         q_vec = vectorizer.transform([question])
