@@ -145,7 +145,9 @@ def build(embedder_name: str, max_per_company: int, out_dir: Path) -> None:
             print("  No local cache — fetching from EDGAR ...")
             filing_iter = (
                 download_filing(f)
-                for f in get_company_filings(cik, form_types=FORM_TYPES, max_filings=max_per_company)
+                for f in get_company_filings(
+                    cik, form_types=FORM_TYPES, max_filings=max_per_company
+                )
             )
 
         count = 0
