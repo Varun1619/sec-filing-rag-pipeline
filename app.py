@@ -192,6 +192,14 @@ def _load_analytics() -> dict:
         return {"error": str(exc)}
 
 
+# ── Example questions (shared state key) ─────────────────────────────────
+
+_EXAMPLES = [
+    "What was Microsoft's income before taxes in fiscal 2025?",
+    "What was NVIDIA's total revenue in fiscal 2025?",
+    "What are Apple's main risk factors?",
+]
+
 # ── Sidebar ───────────────────────────────────────────────────────────────
 
 with st.sidebar:
@@ -215,14 +223,41 @@ tab_query, tab_analytics = st.tabs(["🔍 Ask a Question", "📊 Pipeline Analyt
 # ── Tab 1: Query ──────────────────────────────────────────────────────────
 
 with tab_query:
-    st.header("Ask a question about SEC filings")
-    question = st.text_input(
-        "Question",
-        placeholder="What was Apple's total revenue in fiscal 2023?",
+    # Header + one-line description
+    st.title("SEC Filing RAG")
+    st.caption(
+        "Ask natural-language questions across SEC 10-K/10-Q filings — "
+        "answers are retrieved from source documents and cited."
     )
-    search_btn = st.button("Search", type="primary")
+    st.divider()
 
-    if search_btn and question.strip():
+    # Initialise session state for the question input
+    if "question_input" not in st.session_state:
+        st.session_state["question_input"] = ""
+
+    question = st.text_input(
+        "Your question",
+        value=st.session_state["question_input"],
+        placeholder="e.g. What was Apple's revenue in fiscal 2025?",
+        label_visibility="collapsed",
+    )
+
+    # Example-question buttons — clicking populates the input and auto-runs
+    st.caption("Try an example:")
+    ex_cols = st.columns(len(_EXAMPLES))
+    run_example = False
+    for col, ex in zip(ex_cols, _EXAMPLES):
+        if col.button(ex, use_container_width=True):
+            question = ex
+            st.session_state["question_input"] = ex
+            run_example = True
+
+    st.write("")  # breathing room
+    search_btn = st.button("Search", type="primary", use_container_width=False)
+
+    should_run = (search_btn or run_example) and question.strip()
+
+    if should_run:
         if _DEMO_MODE:
             # ── Demo path: TF-IDF retrieval + Anthropic generation ────────
             searcher = _get_demo_searcher()
@@ -269,23 +304,45 @@ with tab_query:
 
                     latency_ms = (time.perf_counter() - t0) * 1000
 
-                st.caption(
-                    f"Latency: {latency_ms:.0f} ms  |  " f"{len(retrieved)} chunks retrieved"
-                )
-
+                # ── Answer card ───────────────────────────────────────────
                 if answer:
-                    st.subheader("Answer")
-                    st.write(answer)
+                    st.markdown(
+                        f"""
+                        <div style="
+                            background:#f7f9fc;
+                            border-left:4px solid #1a6eb5;
+                            border-radius:6px;
+                            padding:1.1rem 1.4rem 1rem 1.4rem;
+                            margin:1rem 0 0.5rem 0;
+                        ">
+                        <p style="margin:0 0 0.5rem 0;font-size:0.75rem;font-weight:600;
+                                  letter-spacing:0.08em;color:#1a6eb5;text-transform:uppercase;">
+                            Answer
+                        </p>
+                        <p style="margin:0;font-size:1rem;line-height:1.6;color:#1a1a2e;">
+                            {answer.replace(chr(10), "<br>")}
+                        </p>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
-                st.subheader("Source Chunks")
-                for i, rc in enumerate(retrieved, 1):
-                    c = rc.chunk
-                    with st.expander(
-                        f"[{i}] {c.company_name} — {c.form_type} ({c.filed_date})"
-                        f"  score={rc.score:.3f}"
-                    ):
-                        st.text(c.text[:1000] + ("..." if len(c.text) > 1000 else ""))
-                        st.caption(f"chunk_id: {c.chunk_id}  |  filing_id: {c.filing_id}")
+                st.caption(f"⏱ {latency_ms:.0f} ms  ·  {len(retrieved)} chunks retrieved")
+
+                # ── Source chunks (collapsed) ─────────────────────────────
+                if retrieved:
+                    st.write("")
+                    with st.expander(f"Source chunks ({len(retrieved)})", expanded=False):
+                        for i, rc in enumerate(retrieved, 1):
+                            c = rc.chunk
+                            st.markdown(
+                                f"**[{i}] {c.company_name}** — {c.form_type} "
+                                f"({c.filed_date})  `score={rc.score:.3f}`"
+                            )
+                            st.text(c.text[:800] + ("..." if len(c.text) > 800 else ""))
+                            st.caption(f"chunk_id: {c.chunk_id}  |  filing_id: {c.filing_id}")
+                            if i < len(retrieved):
+                                st.divider()
 
         else:
             # ── Full pipeline path ────────────────────────────────────────
@@ -301,24 +358,46 @@ with tab_query:
                 result = pipeline.query(question, top_k=top_k)
             wh.close()
 
+            if result.answer:
+                st.markdown(
+                    f"""
+                    <div style="
+                        background:#f7f9fc;
+                        border-left:4px solid #1a6eb5;
+                        border-radius:6px;
+                        padding:1.1rem 1.4rem 1rem 1.4rem;
+                        margin:1rem 0 0.5rem 0;
+                    ">
+                    <p style="margin:0 0 0.5rem 0;font-size:0.75rem;font-weight:600;
+                              letter-spacing:0.08em;color:#1a6eb5;text-transform:uppercase;">
+                        Answer
+                    </p>
+                    <p style="margin:0;font-size:1rem;line-height:1.6;color:#1a1a2e;">
+                        {result.answer.replace(chr(10), "<br>")}
+                    </p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
             st.caption(
-                f"Latency: {result.latency_ms:.0f} ms  |  "
+                f"⏱ {result.latency_ms:.0f} ms  ·  "
                 f"{len(result.retrieved_chunks)} chunks retrieved"
             )
 
-            if result.answer:
-                st.subheader("Answer")
-                st.write(result.answer)
-
-            st.subheader("Source Chunks")
-            for i, rc in enumerate(result.retrieved_chunks, 1):
-                c = rc.chunk
-                with st.expander(
-                    f"[{i}] {c.company_name} — {c.form_type} ({c.filed_date})"
-                    f"  score={rc.score:.3f}"
-                ):
-                    st.text(c.text[:1000] + ("..." if len(c.text) > 1000 else ""))
-                    st.caption(f"chunk_id: {c.chunk_id}  |  filing_id: {c.filing_id}")
+            if result.retrieved_chunks:
+                st.write("")
+                with st.expander(f"Source chunks ({len(result.retrieved_chunks)})", expanded=False):
+                    for i, rc in enumerate(result.retrieved_chunks, 1):
+                        c = rc.chunk
+                        st.markdown(
+                            f"**[{i}] {c.company_name}** — {c.form_type} "
+                            f"({c.filed_date})  `score={rc.score:.3f}`"
+                        )
+                        st.text(c.text[:800] + ("..." if len(c.text) > 800 else ""))
+                        st.caption(f"chunk_id: {c.chunk_id}  |  filing_id: {c.filing_id}")
+                        if i < len(result.retrieved_chunks):
+                            st.divider()
 
 # ── Tab 2: Analytics ──────────────────────────────────────────────────────
 
