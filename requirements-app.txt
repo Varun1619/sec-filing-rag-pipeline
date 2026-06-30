@@ -6,7 +6,10 @@ pydantic>=2.7,<3
 pydantic-settings>=2.3,<3
 numpy>=1.26
 scikit-learn>=1.5
-sentence-transformers>=3.0
+# Pin to 2.x: 3.x imports `datasets` at module level which breaks on
+# pyarrow>=18 (pa.PyExtensionType removed). 2.x has no this dependency.
+sentence-transformers>=2.2,<3.0
+pyarrow<18
 qdrant-client>=1.9
 duckdb>=0.10
 streamlit>=1.35
