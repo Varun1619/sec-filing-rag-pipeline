@@ -43,6 +43,8 @@ def build(embedder_name: str, max_per_company: int, out_dir: Path) -> None:
     os.environ["SEC_DUCKDB_PATH"] = str(db_path)
     os.environ["SEC_EMBEDDER"] = embedder_name
     os.environ["SEC_QDRANT_LOCATION"] = ":memory:"
+    # Reset watermark so all filings are eligible regardless of prior runs
+    os.environ["SEC_WATERMARK_DATE"] = ""
 
     # Re-import after env override so settings picks up new values
     import importlib
@@ -58,13 +60,22 @@ def build(embedder_name: str, max_per_company: int, out_dir: Path) -> None:
     from src.ingest.parse import parse_filing
     from src.store.warehouse import Warehouse
 
+    # Remove watermark so all filings are re-eligible (already-downloaded files
+    # are still skipped by the local-dir check, so re-download doesn't happen)
+    from src.config import settings as _settings
+
+    watermark_path = _settings.data_dir / ".watermark"
+    if watermark_path.exists():
+        watermark_path.unlink()
+        print(f"Cleared watermark at {watermark_path}")
+
     embedder = get_embedder()
     wh = Warehouse(path=db_path)
 
     total_chunks = 0
     for company_name, cik in COMPANIES.items():
-        print(f"\n{'─'*60}")
-        print(f"Ingesting {company_name} (CIK {cik}) …")
+        print(f"\n{'-'*60}")
+        print(f"Ingesting {company_name} (CIK {cik}) ...")
         count = 0
         for filing in get_company_filings(cik, form_types=FORM_TYPES, max_filings=max_per_company):
             try:
@@ -76,31 +87,33 @@ def build(embedder_name: str, max_per_company: int, out_dir: Path) -> None:
             text = ""
             if filing.local_path:
                 try:
-                    text = parse_filing(Path(filing.local_path))
+                    text = parse_filing(filing)
                 except Exception as exc:
                     print(f"  Parse failed: {exc}")
 
             wh.upsert_filing(filing)
 
             if not text.strip():
-                print(f"  {filing.form_type} {filing.filed_date} — empty text, skipping chunks")
+                print(f"  {filing.form_type} {filing.filed_date} -- empty text, skipping chunks")
                 continue
 
             chunks = chunk_filing(filing, text)
-            for chunk in chunks:
+            texts = [c.text for c in chunks]
+            vectors = embedder.embed(texts)
+            for chunk, vec in zip(chunks, vectors):
                 chunk.entities = extract_entities(chunk.text)
-                chunk.embedding = embedder.embed(chunk.text)
+                chunk.embedding = vec
             wh.upsert_chunks(chunks)
             total_chunks += len(chunks)
             count += 1
-            print(f"  {filing.form_type} {filing.filed_date}" f" — {len(chunks)} chunks embedded")
+            print(f"  {filing.form_type} {filing.filed_date} -- {len(chunks)} chunks embedded")
 
-        print(f"  → {count} filings processed for {company_name}")
+        print(f"  -> {count} filings processed for {company_name}")
 
     wh.close()
     counts = Warehouse(path=db_path).row_counts()
-    print(f"\n{'='*60}")
-    print(f"Demo build complete → {db_path}")
+    print(f"\n{'='*60}", flush=True)
+    print(f"Demo build complete -> {db_path}")
     print(f"  raw_filings : {counts['raw_filings']}")
     print(f"  raw_chunks  : {counts['raw_chunks']} ({total_chunks} with embeddings)")
     print(f"  embedder    : {embedder_name}")

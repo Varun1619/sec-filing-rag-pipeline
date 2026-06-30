@@ -29,7 +29,7 @@ _DEMO_DB = _PROJECT_ROOT / "demo_assets" / "warehouse.duckdb"
 
 if _DEMO_MODE:
     os.environ.setdefault("SEC_DUCKDB_PATH", str(_DEMO_DB))
-    os.environ.setdefault("SEC_EMBEDDER", "sentence_transformers")
+    os.environ.setdefault("SEC_EMBEDDER", "hashing")
     os.environ.setdefault("SEC_QDRANT_LOCATION", ":memory:")
 
 from src.config import settings  # noqa: E402
