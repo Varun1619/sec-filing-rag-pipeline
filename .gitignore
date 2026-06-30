@@ -3,6 +3,8 @@ data/
 qdrant_data/
 *.duckdb
 *.duckdb.wal
+# Exception: keep the pre-built demo database
+!demo_assets/warehouse.duckdb
 logs/
 .dbt/
 
@@ -23,6 +25,7 @@ build/
 # Environment / secrets
 .env
 .env.local
+.streamlit/secrets.toml
 
 # Sentence-transformers / HF model cache
 models/

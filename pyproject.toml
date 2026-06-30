@@ -69,6 +69,7 @@ dev = [
     "pytest>=8.2",
     "pytest-cov>=5.0",
     "ruff>=0.4",
+    "black>=24.0",
 ]
 
 [project.scripts]
@@ -77,6 +78,10 @@ sec-ingest = "scripts.run_pipeline:cli"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*", "dagster_defs*", "scripts*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
 
 [tool.ruff]
 line-length = 100

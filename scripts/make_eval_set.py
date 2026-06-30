@@ -13,12 +13,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import duckdb  # noqa: E402
+
 from src.config import settings
 from src.logging_utils import setup_logging
 
 setup_logging(settings.log_level)
-
-import duckdb
 
 
 def make_eval_set(output_path: str = "eval_data/eval_set.json", n: int = 20) -> None:
@@ -42,13 +42,17 @@ def make_eval_set(output_path: str = "eval_data/eval_set.json", n: int = 20) -> 
     for chunk_id, filing_id, cik, company, form, date, text in rows:
         # Create a simple factual question from the chunk text
         snippet = text[:200].replace("\n", " ").strip()
-        question = f"What information does {company} provide in its {form} filing about: {snippet[:80]}?"
-        samples.append({
-            "question": question,
-            "expected_filing_id": filing_id,
-            "expected_cik": cik,
-            "expected_text_contains": snippet[:40],
-        })
+        question = (
+            f"What information does {company} provide in its {form} filing about: {snippet[:80]}?"
+        )
+        samples.append(
+            {
+                "question": question,
+                "expected_filing_id": filing_id,
+                "expected_cik": cik,
+                "expected_text_contains": snippet[:40],
+            }
+        )
 
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     Path(output_path).write_text(json.dumps(samples, indent=2), encoding="utf-8")

@@ -19,17 +19,13 @@ from pathlib import Path
 from dagster import (
     AssetExecutionContext,
     Definitions,
-    Output,
     asset,
     define_asset_job,
-    load_assets_from_modules,
 )
 
 from src.config import settings
 from src.embed.embedder import get_embedder
 from src.ingest.edgar import ingest_companies
-from src.ingest.entities import extract_entities
-from src.ingest.parse import parse_filing
 from src.chunk.chunker import chunk_filing
 from src.logging_utils import get_logger, setup_logging
 from src.models import Chunk, Filing
@@ -73,9 +69,7 @@ def warehouse_filings(context: AssetExecutionContext, raw_filings: list[Filing])
 
 
 @asset(group_name="processing")
-def chunks(
-    context: AssetExecutionContext, raw_filings: list[Filing]
-) -> list[Chunk]:
+def chunks(context: AssetExecutionContext, raw_filings: list[Filing]) -> list[Chunk]:
     """Parse filings and split into text chunks."""
     from src.ingest.parse import parse_filing as _parse
 
@@ -86,25 +80,27 @@ def chunks(
             fc = chunk_filing(filing, text)
             all_chunks.extend(fc)
         except Exception as exc:
-            logger.warning("Failed to chunk filing",
-                           extra={"filing_id": filing.filing_id, "error": str(exc)})
+            logger.warning(
+                "Failed to chunk filing",
+                extra={"filing_id": filing.filing_id, "error": str(exc)},
+            )
 
     # Row-count reconciliation log
     logger.info(
         "Reconciliation",
         extra={"filings_in": len(raw_filings), "chunks_out": len(all_chunks)},
     )
-    context.add_output_metadata({
-        "filings_in": len(raw_filings),
-        "chunks_produced": len(all_chunks),
-    })
+    context.add_output_metadata(
+        {
+            "filings_in": len(raw_filings),
+            "chunks_produced": len(all_chunks),
+        }
+    )
     return all_chunks
 
 
 @asset(group_name="processing")
-def embedded_chunks(
-    context: AssetExecutionContext, chunks: list[Chunk]
-) -> list[Chunk]:
+def embedded_chunks(context: AssetExecutionContext, chunks: list[Chunk]) -> list[Chunk]:
     """Embed each chunk and upsert into Qdrant."""
     embedder = get_embedder()
     texts = [c.text for c in chunks]
@@ -121,9 +117,7 @@ def embedded_chunks(
 
 
 @asset(group_name="processing")
-def warehouse_chunks(
-    context: AssetExecutionContext, embedded_chunks: list[Chunk]
-) -> None:
+def warehouse_chunks(context: AssetExecutionContext, embedded_chunks: list[Chunk]) -> None:
     """Persist chunks (with embeddings) to DuckDB raw_chunks table."""
     with Warehouse() as wh:
         n = wh.upsert_chunks(embedded_chunks)
@@ -138,8 +132,10 @@ try:
 
     _DBT_PROJECT = DbtProject(project_dir=Path(__file__).parent.parent / "dbt")
 
-    @dbt_assets(manifest=_DBT_PROJECT.manifest_path if _DBT_PROJECT.manifest_path.exists() else None,  # type: ignore[arg-type]
-                project=_DBT_PROJECT)
+    @dbt_assets(
+        manifest=_DBT_PROJECT.manifest_path if _DBT_PROJECT.manifest_path.exists() else None,  # type: ignore[arg-type]
+        project=_DBT_PROJECT,
+    )
     def sec_dbt_assets(context: AssetExecutionContext, dbt: DbtCliResource):
         yield from dbt.cli(["build"], context=context).stream()
 
